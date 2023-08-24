@@ -1,0 +1,142 @@
+// Trial downlaod
+$(document).ready(function() {
+	var link = "DefaultFile";
+	var timeoutValue = 3000;
+	var trialDeplayParam = "trial-delay";
+	var trialDeplayFlag = false;
+	var thankyouPageFlag = false;
+	
+	function WhileDownloadRedirect() {
+		window.location.href = link;
+	}
+	
+	// Function of getting specific query string
+	function getQueryStringParameterByName_trial(name) {
+		name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+		var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+			results = regex.exec(location.search);
+		return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+	}
+	
+	// Function of setting session cookie
+	function setSessionCookie_trial(name, value) {
+		document.cookie = name + "=" + value + "; path=/";
+	}
+	
+	// Retrieve a browser cookie by name
+	function getCookie_trial(c_name) {
+		var result = "";
+		if (document.cookie.length > 0) {
+			c_start = document.cookie.indexOf(c_name + "=");
+			if (c_start != -1) {
+				c_start = c_start + c_name.length + 1;
+				c_end = document.cookie.indexOf(";", c_start);
+				if (c_end == -1) {
+					c_end = document.cookie.length;
+				}
+				result = unescape(document.cookie.substring(c_start, c_end));
+			}
+		}
+		return result;
+	}
+	
+	// Allow customize timeoutValue from query string "delay-value"
+	if(getQueryStringParameterByName_trial(trialDeplayParam) != ""){
+		// When a querystring parameter "trial-delay=none" is present on the page where the user clicked the "download trial" button, the transition to the thank-you page is done immediately. 
+		timeoutValue = getQueryStringParameterByName_trial("trial-delay");
+		trialDeplayFlag = true;
+		
+		// If delay-value="none", set timeoutValue to be default value for different browsers.
+		if(timeoutValue == "none"){
+			timeoutValue = 0;
+		}
+	}
+		
+	// Function of using hidden iframe for download trial
+	function downloadFileByIframe(fileLink){
+		var iframe = document.createElement('iframe');
+		iframe.style.display = 'none';
+		document.body.appendChild(iframe);
+		iframe.src = fileLink;
+	}
+
+	// Flag for checking if currently in thank you page or not
+	if(window.location.href.indexOf("trial-thank-you.html") != -1){
+		thankyouPageFlag = true;
+	}
+	
+	//Logic required in thank you page: When there is downloadTrial=yes in query string, download trial from cookie: trial_link
+	if(window.location.href.indexOf("trial-thank-you.html") != -1 && getQueryStringParameterByName_trial("downloadTrial") == "yes"){
+		// Download trial if session cookie is not empty
+		if(getCookie_trial("trial_link") != ""){
+			downloadFileByIframe(getCookie_trial("trial_link"));
+		}
+	}
+	
+	// language list, en/de/fr/la/it/nl/br/pl/cz/ru/jp/cn/tw 
+	var CDGS_languageList = ["en", "de", "fr", "la", "it", "nl", "br", "pl", "cz", "ru", "jp", "cn", "tw"];
+	
+	//CDGS, loop to add button click function
+	$.each(CDGS_languageList, function(index, lang){
+		var trialBtnClass = ".cdgs-trial-" + lang;	//ex: ".cdgs-trial-en"
+		$(trialBtnClass).click(function(e) {
+			e.preventDefault();
+			link = "/"+lang+"/product/coreldraw/trial-thank-you.html?ver=24.0";	//ex: "/en/product/coreldraw/trial-thank-you.html?ver=24.0";
+			if(trialDeplayFlag){	// trial-delay flow, set session cookie, redirect user to thank you page, then download file
+				link = "/"+lang+"/product/coreldraw/trial-thank-you.html?ver=24.0&downloadTrial=yes";	//ex: "/en/product/coreldraw/trial-thank-you.html?ver=24.0&downloadTrial=yes";
+				setSessionCookie_trial("trial_link", $(this).attr("href"));
+			}else{	// Current flow, download trial first then redirect user to thank you page
+				downloadFileByIframe($(this).attr("href"));
+			}
+			// Only redirect user to thank you page when it is not in thank you page now
+			if(!thankyouPageFlag){
+				setTimeout(WhileDownloadRedirect, timeoutValue);
+			}
+		});
+	});
+	
+	// language list, en/de/fr/la/it/nl/br/pl/cz/ru/jp/cn/tw 
+	var CDSTD_languageList = ["en", "de", "fr", "la", "it", "nl", "br", "pl", "cz", "ru", "jp", "cn", "tw"];
+	
+	//CDSTD, loop to add button click function
+	$.each(CDSTD_languageList, function(index, lang){
+		var trialBtnClass = ".cdstd-trial-" + lang;	//ex: ".cdstd-trial-en"
+		$(trialBtnClass).click(function(e) {
+			e.preventDefault();
+			link = "/"+lang+"/product/coreldraw/standard/trial-thank-you.html";	//ex: link = "/en/product/coreldraw/standard/trial-thank-you.html";
+			if(trialDeplayFlag){	// trial-delay flow, set session cookie, redirect user to thank you page, then download file
+				link = "/"+lang+"/product/coreldraw/standard/trial-thank-you.html?downloadTrial=yes";	//ex: "/en/product/coreldraw/standard/trial-thank-you.html?downloadTrial=yes";
+				setSessionCookie_trial("trial_link", $(this).attr("href"));
+			}else{	// Current flow, download trial first then redirect user to thank you page
+				downloadFileByIframe($(this).attr("href"));
+			}
+			// Only redirect user to thank you page when it is not in thank you page now
+			if(!thankyouPageFlag){
+				setTimeout(WhileDownloadRedirect, timeoutValue);
+			}
+		});
+	});
+	
+	// CDTS language list
+	var CDTS_languageList = ["en", "us", "au", "ca", "gb", "rw", "in", "de", "fr", "it", "nl", "pl", "ru", "br", "la", "cz", "cn", "jp", "tw"];
+	
+	//CDTS, loop to add button click function
+	$.each(CDTS_languageList, function(index, lang){
+		var trialBtnClass = ".cdts-trial-" + lang;	//ex: ".cdts-trial-en"
+		$(trialBtnClass).click(function(e) {
+			e.preventDefault();
+			link = "/"+lang+"/product/technical-suite/trial-thank-you.html?ver=21.0";	//ex: "/en/product/technical-suite/trial-thank-you.html?ver=21.0";
+			if(trialDeplayFlag){	// trial-delay flow, set session cookie, redirect user to thank you page, then download file
+				link = "/"+lang+"/product/technical-suite/trial-thank-you.html?ver=21.0&downloadTrial=yes";	//ex: "/en/product/technical-suite/trial-thank-you.html?ver=21.0&downloadTrial=yes";
+				setSessionCookie_trial("trial_link", $(this).attr("href"));
+			}else{	// Current flow, download trial first then redirect user to thank you page
+				downloadFileByIframe($(this).attr("href"));
+			}
+			// Only redirect user to thank you page when it is not in thank you page now
+			if(!thankyouPageFlag){
+				setTimeout(WhileDownloadRedirect, timeoutValue);
+			}
+		});
+	});
+	
+});
